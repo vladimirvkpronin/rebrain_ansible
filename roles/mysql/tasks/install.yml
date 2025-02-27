@@ -1,0 +1,66 @@
+---
+- name: MySQL installation
+  block:
+    - name: Check if MySQL is already installed.
+      ansible.builtin.stat:
+        path: "{{ mysql_config_file }}"
+      register: mysql_installed
+
+    - name: Update apt cache if MySQL is not yet installed.
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: true
+      changed_when: false
+      when: not mysql_installed.stat.exists
+
+    - name: Install packages
+      become: true
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        update_cache: true
+        state: present
+      loop:
+        - wget
+        - python-dev
+        - python3-mysqldb
+      ignore_errors: true # noqa: ignore-errors
+
+
+    - name: Download dev packages
+      ansible.builtin.command: "wget http://dev.mysql.com/get/mysql-apt-config_0.8.33-1_all.deb -O /tmp/mysql_dev.deb"
+      when: not mysql_installed.stat.exists
+      register: mysql_wget_download
+      changed_when: mysql_wget_download.rc == 0
+
+    - name: Install dev packages
+      become: true
+      ansible.builtin.apt:
+        deb: "/tmp/mysql_dev.deb"
+      when: not mysql_installed.stat.exists
+
+    - name: Install MySQL on Debian/Ubuntu present version
+      become: true
+      # noqa package-latest
+      ansible.builtin.package:
+        name: mysql-server
+        state: present
+        policy_rc_d: 101
+        update_cache: true
+      when: not mysql_installed.stat.exists
+
+
+    - name: Ensure MySQL is stopped after initial install.
+      ansible.builtin.service:
+        name: mysql
+        state: stopped
+      when: not mysql_installed.stat.exists
+
+    - name: Delete innodb log files created by apt package after initial install.
+      ansible.builtin.file:
+        path: "{{ mysql_datadir }}/{{ item }}"
+        state: absent
+      with_items:
+        - ib_logfile0
+        - ib_logfile1
+      when: >
+        not mysql_installed.stat.exists

@@ -1,0 +1,17 @@
+<?php
+$user = "{{ initapps_database_user }}";
+$password = "{{ initapps_database_user_password }}";
+$database = "{{ initapps_database_name }}";
+$table = "{{ initapps_table_name }}";
+
+try {
+  $db = new PDO("mysql:host=localhost;dbname=$database", $user, $password);
+  echo "<h2>TODO</h2><ol>"; 
+  foreach($db->query("SELECT content FROM $table") as $row) {
+    echo "<li>" . $row['content'] . "</li>";
+  }
+  echo "</ol>";
+} catch (PDOException $e) {
+    print "Error!: " . $e->getMessage() . "<br/>";
+    die();
+}

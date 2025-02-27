@@ -1,0 +1,15 @@
+---
+- name: Install web-server
+  hosts: web_servers
+  gather_facts: true
+  become: true
+  vars_files:
+    - ./group_vars/main.yml #pass from vault - vaultSecret@!
+    - ./group_vars/mysql_password.vault
+  roles:
+    - role: nginx
+    - role: mysql
+    - role: php
+    - role: initapps
+    - role: joomla
+    

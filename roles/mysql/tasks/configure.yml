@@ -1,0 +1,111 @@
+---
+- name: Configurate MySQL After install
+  block:
+    - name: Copy my.cnf global MySQL configuration.
+      ansible.builtin.template:
+        src: my.cnf.j2
+        dest: "{{ mysql_config_file }}"
+        owner: root
+        group: root
+        mode: "0644"
+        force: "{{ mysql_overwrite_global_mycnf }}"
+      notify: Restart_mysql
+      when: mysql_overwrite_global_mycnf
+
+    - name: Copy .my.cnf file with root password credentials.
+      ansible.builtin.template:
+        src: "root-my.cnf.j2"
+        dest: "/root/.my.cnf"
+        owner: root
+        group: root
+        mode: "0600"
+      # no_log: "{{ mysql_hide_passwords }}"
+      when: mysql_root_password_update
+
+    - name: Copy enable-plugin file
+      ansible.builtin.copy:
+        src: "./files/enable_native_password.cnf"
+        dest: "/etc/mysql/conf.d/enable-mysql-native-password.cnf"
+        owner: root
+        group: root
+        mode: "0644"
+      # no_log: "{{ mysql_hide_passwords }}"
+      when: mysql_root_password_update
+      notify: Restart mysql
+
+    - name: Create datadir if it does not exist
+      ansible.builtin.file:
+        path: "{{ mysql_datadir }}"
+        state: directory
+        owner: mysql
+        group: mysql
+        mode: "0755"
+        setype: mysqld_db_t
+
+    - name: Ensure MySQL is started and enabled on boot.
+      ansible.builtin.service:
+        name: mysql
+        state: started
+        enabled: "{{ mysql_enabled_on_startup }}"
+      register: mysql_service_configuration
+
+    - name: Check if MySQL packages were installed.
+      ansible.builtin.set_fact:
+        mysql_install_packages: "{{ (rh_mysql_install_packages is defined and rh_mysql_install_packages.changed)
+          or (deb_mysql_install_packages is defined and deb_mysql_install_packages.changed)
+          or (arch_mysql_install_packages is defined and arch_mysql_install_packages.changed) }}"
+
+    - name: Get list of hosts for the root user.
+      ansible.builtin.command: mysql -NBe
+        "SELECT Host
+        FROM mysql.user
+        WHERE User = '{{ mysql_root_username }}'
+        ORDER BY (Host='localhost') ASC"
+      register: mysql_root_hosts
+      changed_when: false
+      check_mode: false
+      when: mysql_root_password_update
+
+
+   # - name: Update MySQL root password for localhost root account (5.7.x ≤ MySQL < 8.4)
+   #   ansible.builtin.shell: >
+   #     mysql -u root -NBe
+   #     "ALTER USER '{{ mysql_root_username }}'@'{{ item }}'
+   #      IDENTIFIED  mysql_native_password
+   #      BY '{{ mysql_root_password }}'; FLUSH PRIVILEGES;"
+   #   #no_log: "{{ mysql_hide_passwords }}"
+   #   with_items: "{{ mysql_root_hosts.stdout_lines|default([]) }}"
+
+    - name: Set root password for MySQL
+      community.mysql.mysql_user:
+        login_user: "{{ mysql_root_username }}"
+        login_password: ""  # Пустой пароль для начальной настройки
+        name: root
+        password: "{{ mysql_root_password }}"
+        host: "{{ item }}"
+        check_implicit_admin: true
+        state: present
+      loop:
+        - 127.0.0.1
+        - ::1
+        - localhost
+      when: mysql_root_password_update
+
+    - name: Create database user with name 'admin' and password 'mysql_user_password' with all database privileges
+      community.mysql.mysql_user:
+        name: "{{ mysql_user_new }}"
+        password: "{{ mysql_user_password }}"
+        priv: '*.*:ALL'
+        state: present
+
+    - name: Try to create database as root/nopassword first. If not allowed, pass the credentials
+      community.mysql.mysql_db:
+        login_user: "{{ mysql_user_new }}"
+        login_password: "{{ mysql_user_password }}"
+        name: test
+        state: present
+
+    - name: Remove MySQL test database.
+      community.mysql.mysql_db:
+        name: 'test'
+        state: absent

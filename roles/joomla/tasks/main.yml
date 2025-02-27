@@ -1,0 +1,28 @@
+---
+# tasks file for joomla
+- name: Prepare joomla
+  block:
+    - name: Download joomla package
+      ansible.builtin.get_url:
+        url: "https://downloads.joomla.org/ru/cms/joomla5/{{ joomla_version }}/Joomla_{{ joomla_version }}-Stable-Full_Package.tar.gz?format=gz"
+        dest: "/tmp/joomla.tar.gz"
+        mode: "0755"
+
+    - name: Create a directory if it does not exist
+      ansible.builtin.file:
+        path: "{{ joomla_path }}"
+        state: directory
+        mode: "0755"
+
+    - name: Unarchive a file
+      ansible.builtin.unarchive:
+        src: "/tmp/joomla.tar.gz"
+        dest: "{{ joomla_path }}"
+        remote_src: true
+
+    - name: Change permissions to joomla directory
+      ansible.builtin.file:
+        path: "{{ joomla_path }}"
+        owner: "{{ joomla_pid_user }}"
+        group: "{{ joomla_pid_user }}"
+        recurse: true

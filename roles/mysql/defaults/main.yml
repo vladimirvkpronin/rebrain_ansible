@@ -1,0 +1,24 @@
+---
+# defaults file for mysql
+
+
+mysql_enabled_on_startup: true
+mysql_hide_passwords: true
+mysql_user_password: "{{ admin_pass_mysql }}"
+mysql_root_password: "{{ root_pass_mysql }}"
+# update password?
+mysql_root_password_update: true
+# udate my.cnf?
+mysql_overwrite_global_mycnf: true
+
+# for ubuntu
+mysql_config_file: /etc/mysql/mysql.conf.d/mysqld.cnf
+mysql_datadir: /var/lib/mysql
+
+mysql_user: "root" # Под кем запускаем pid
+mysql_root_username: "root"
+mysql_user_new: "admin"
+mysql_socket: /var/run/mysqld/mysqld.sock
+
+
+

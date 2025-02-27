@@ -1,0 +1,27 @@
+- name: Configure mysql
+  block:
+    - name: Try to create database as root/nopassword first. If not allowed, pass the credentials
+      community.mysql.mysql_db:
+        name: "{{ initapps_database_name }}"
+        state: present
+      when: initapps_create_database
+
+
+    - name: Create user and table in mysql
+      ansible.builtin.template:
+        src: templates/create_table.sql.j2
+        dest: /tmp/create_table.sql
+        mode: "0644"
+      when: initapps_create_user_and_table
+
+    - name: Scripts to create table and user
+      ansible.builtin.command: "mysql -uroot -p{{ initapps_root_mysql_password }} -e 'source /tmp/create_table.sql'"
+      when: initapps_create_user_and_table
+      register: initapps_script_done
+      changed_when: initapps_script_done.rc == 0
+
+    - name: Create table web
+      ansible.builtin.template:
+        src: templates/list.php.j2
+        dest: "{{ initapps_data_path }}/list.php"
+        mode: "0644"

@@ -1,0 +1,19 @@
+# версия php
+php_fpm_version: "8.1" 
+# создавать БД в mysql?
+create_database_in_mysql: true
+# Наименование создаваемой БД
+name_for_database_in_mysql: "joomladb"
+# создавать таблицу и пользователя для данной БД?
+create_use_and_table_in_mysql: true
+# Наименование пользователя (с привелегиями *:ALL) на БД {{ name_for_database }} и пароль. Используются для joomla
+user_for_database_in_mysql: "joomla"
+password_for_database_in_mysql: "123qweASD"
+# Hostname
+server_name: "test-joomla"
+# Путь до файлов joomla
+path_joomla: "/var/www/sites/joomla"
+# Версия joomla. В данном случае последняя, т.к. 5.1.4 без ВПН не удалось скачать
+version_joomla: "5.2.4"
+# Имя пользователя от которого запускаем nginx и joomla
+username_to_start_server: "www-data"

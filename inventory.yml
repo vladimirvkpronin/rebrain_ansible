@@ -1,0 +1,10 @@
+---
+all:
+  children:
+    web_servers:
+      hosts:
+        web01:
+          ansible_connection: ssh
+          ansible_user: user
+          ansible_host: 62.84.115.252
+          ansible_password: "rfwwwvh"

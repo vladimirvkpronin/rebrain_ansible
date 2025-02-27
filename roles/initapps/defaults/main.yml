@@ -1,0 +1,15 @@
+---
+# defaults file for initapps
+initapps_data_path: "{{ path_joomla }}"
+initapps_user: "{{ username_to_start_server }}"
+initapps_database_name: "{{ name_for_database_in_mysql }}"
+initapps_table_name: "php_list"
+initapps_create_database: "{{ create_database_in_mysql }}"
+initapps_database_user: "{{ user_for_database_in_mysql }}"
+initapps_database_user_password: "{{ password_for_database_in_mysql }}"
+initapps_create_user_and_table: "{{ create_use_and_table_in_mysql }}"
+initapps_root_mysql_password: "{{ root_pass_mysql }}"
+initapps_servername: "{{ server_name }}"
+
+initapps_php_version: "{{ php_fpm_version }}"
+initapps_php_pid_path: "/var/run/php/php{{ initapps_php_version }}-fpm.pid"

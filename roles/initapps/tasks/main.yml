@@ -1,0 +1,17 @@
+---
+# tasks file for initapps
+- name: Configure NGINX
+  ansible.builtin.include_tasks: nginx.yml
+
+- name: Configure MySQL
+  ansible.builtin.include_tasks: mysql.yml
+
+
+- name: Configure PHP
+  block:
+    - name: Change PHP Configure
+      ansible.builtin.template:
+        src: ./templates/php-fpm.conf.j2
+        dest: "/etc/php/{{ initapps_php_version }}/fpm/php-fpm.conf"
+        mode: '0644'
+      notify: "Restart php"

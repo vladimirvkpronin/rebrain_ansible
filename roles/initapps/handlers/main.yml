@@ -1,0 +1,13 @@
+---
+# handlers file for initapps
+- name: Restart nginx
+  ansible.builtin.service:
+    name: nginx
+    state: restarted
+    sleep: 5
+
+- name: Restart php
+  ansible.builtin.service:
+    name: php{{ initapps_php_version }}-fpm
+    state: restarted
+    sleep: 5

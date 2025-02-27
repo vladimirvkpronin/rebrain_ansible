@@ -1,0 +1,5 @@
+---
+# defaults file for joomla
+joomla_version: "{{ version_joomla | replace('.', '-') }}"
+joomla_path: "{{ path_joomla }}"
+joomla_pid_user: "{{ username_to_start_server }}"

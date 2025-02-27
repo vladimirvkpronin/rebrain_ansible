@@ -1,0 +1,8 @@
+---
+# Tasks file for mysql
+# Install Mysql
+- name: Start install
+  ansible.builtin.include_tasks: install.yml
+
+- name: Configure after install
+  ansible.builtin.include_tasks: configure.yml
